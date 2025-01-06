@@ -1,6 +1,8 @@
-# show milliseconds in a human-readable form
+# Show milliseconds in a human-readable form
 
-Useful to get a deterministically ordered map, as the order of keys can vary between engines.
+DateTime is also supported in human-readable form
+
+X seconds|minutes|hours|days| from now|ago
 
 https://hex.pm/packages/sort_keys
 
