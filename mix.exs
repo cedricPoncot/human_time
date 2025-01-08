@@ -4,7 +4,7 @@ defmodule HumanTime.MixProject do
   def project do
     [
       app: :human_time,
-      description: "human-readable form for Time (X seconds|minutes|hours|days| from now|ago)",
+      description: "A library to show milliseconds or `DateTime` values in a human-readable form. It supports multiple locales for flexible internationalization.",
       version: "0.2.0",
       elixir: "~> 1.18-dev",
       start_permanent: Mix.env() == :prod,
