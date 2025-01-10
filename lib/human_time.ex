@@ -10,7 +10,9 @@ defmodule HumanTime do
       "second" => " second",
       "minute" => " minute",
       "hour" => " hour",
-      "day" => " day"
+      "day" => " day",
+      "month" => " month",
+      "year" => " year"
     },
     "fr" => %{
       "ago" => "il y a {time}",
@@ -18,7 +20,9 @@ defmodule HumanTime do
       "second" => " seconde",
       "minute" => " minute",
       "hour" => " heure",
-      "day" => " jour"
+      "day" => " jour",
+      "month" => " mois",
+      "year" => " an"
     },
     "es" => %{
       "ago" => "hace {time}",
@@ -26,7 +30,9 @@ defmodule HumanTime do
       "second" => " segundo",
       "minute" => " minuto",
       "hour" => " hora",
-      "day" => " día"
+      "day" => " día",
+      "month" => " mes",
+      "year" => " año"
     },
     "zh" => %{
       "ago" => "{time}前",
@@ -34,7 +40,17 @@ defmodule HumanTime do
       "second" => "秒",
       "minute" => "分钟",
       "hour" => "小时",
-      "day" => "天"
+      "day" => "天",
+      "month" => "月",
+      "year" => "年"
+    },
+    "pt" => %{
+      "ago" => "há {time}",
+      "from_now" => "em {time}",
+      "second" => " segundo",
+      "minute" => " minuto",
+      "hour" => " hora",
+      "day" => " dia"
     },
     "ru" => %{
       "ago" => "{time} назад",
@@ -71,48 +87,69 @@ defmodule HumanTime do
   @spec human(integer() | DateTime.t(), keyword()) :: String.t()
   def human(input, opts \\ []) do
     locale = Keyword.get(opts, :locale, @default_locale)
+    verbose = Keyword.get(opts, :verbose, 1)
     translations = Map.get(@translations, locale, @translations[@default_locale])
 
     case input do
       ms when is_integer(ms) ->
         seconds = div(ms, 1000)
-        human_diff(seconds, translations, locale)
+        human_diff(seconds, translations, locale, verbose)
 
       %DateTime{} = datetime ->
-        now = DateTime.utc_now() |> DateTime.to_unix()
-        diff = DateTime.to_unix(datetime) - now
-        human_diff(diff, translations, locale)
+        now = DateTime.utc_now()
+        seconds = DateTime.diff(datetime, now)
+        human_diff(seconds, translations, locale, verbose)
     end
   end
 
-  defp human_diff(seconds, translations, locale) when seconds < 0 do
-    time = time_phrase(-seconds, translations, locale)
-    String.replace(translations["ago"], "{time}", time)
+  defp human_diff(seconds, translations, locale, verbose) do
+    # Determine if the time is in the past or future
+    is_future = seconds >= 0
+    seconds = abs(seconds)
+
+    # Calculate the time difference in various units
+    years = div(seconds, 31_536_000)
+    seconds = rem(seconds, 31_536_000)
+    months = div(seconds, 2_592_000)
+    seconds = rem(seconds, 2_592_000)
+    days = div(seconds, 86_400)
+    seconds = rem(seconds, 86_400)
+    hours = div(seconds, 3_600)
+    seconds = rem(seconds, 3_600)
+    minutes = div(seconds, 60)
+    seconds = rem(seconds, 60)
+
+    time_units = [
+      {"year", years},
+      {"month", months},
+      {"day", days},
+      {"hour", hours},
+      {"minute", minutes},
+      {"second", seconds}
+    ]
+
+    time_phrase(time_units, translations, verbose, is_future, locale)
   end
 
-  defp human_diff(seconds, translations, locale) when seconds >= 0 do
-    time = time_phrase(seconds, translations, locale)
-    String.replace(translations["from_now"], "{time}", time)
-  end
+  defp time_phrase(time_units, translations, verbose, is_future, locale) do
+    time_str = time_units
+    |> Enum.filter(fn {_, value} -> value > 0 end)
+    |> Enum.take(verbose)
+    |> Enum.map(fn {unit, value} ->
+      unit_translation = Map.get(translations, unit)
+      "#{value}#{unit_translation}#{pluralize(value, locale)}"
+    end)
+    |> Enum.join(", ")
 
-  defp time_phrase(seconds, translations, locale) when seconds < 60 do
-    count = seconds
-    "#{count}#{translations["second"]}#{pluralize(count, locale)}"
-  end
-
-  defp time_phrase(seconds, translations, locale) when seconds < 3600 do
-    count = div(seconds, 60)
-    "#{count}#{translations["minute"]}#{pluralize(count, locale)}"
-  end
-
-  defp time_phrase(seconds, translations, locale) when seconds < 86_400 do
-    count = div(seconds, 3600)
-    "#{count}#{translations["hour"]}#{pluralize(count, locale)}"
-  end
-
-  defp time_phrase(seconds, translations, locale) do
-    count = div(seconds, 86_400)
-    "#{count}#{translations["day"]}#{pluralize(count, locale)}"
+    if time_str == "" do
+      time_str
+    else
+      if is_future do
+        "#{Map.get(translations, "from_now") |> String.replace("{time}", time_str)}"
+      else
+        "#{Map.get(translations, "ago") |> String.replace("{time}", time_str)}"
+      end
+    end
   end
 
   defp pluralize(1, _locale), do: ""

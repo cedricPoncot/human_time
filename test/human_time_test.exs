@@ -42,4 +42,22 @@ defmodule HumanTimeTest do
     past_time = DateTime.utc_now() |> DateTime.add(-3600, :second)
     assert HumanTime.human(past_time, locale: "zh") == "1小时前"
   end
+
+  test "localized output (Portuguese)" do
+    future_time = DateTime.utc_now() |> DateTime.add(120, :second)
+    assert HumanTime.human(future_time, locale: "pt") == "em 2 minutos"
+
+    past_time = DateTime.utc_now() |> DateTime.add(-3600, :second)
+    assert HumanTime.human(past_time, locale: "pt") == "há 1 hora"
+  end
+
+  test "verbose output" do
+    future_time = DateTime.utc_now() |> DateTime.add(90061, :second)
+    assert HumanTime.human(future_time, locale: "en", verbose: 2) == "1 day, 1 hour from now"
+    assert HumanTime.human(future_time, locale: "en", verbose: 3) == "1 day, 1 hour, 1 minute from now"
+
+    past_time = DateTime.utc_now() |> DateTime.add(-31666952, :second)
+    assert HumanTime.human(past_time, locale: "en", verbose: 1) == "1 year ago"
+    assert HumanTime.human(past_time, locale: "en", verbose: 2) == "1 year, 1 day ago"
+  end
 end
