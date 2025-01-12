@@ -17,7 +17,7 @@ A library to show milliseconds or `DateTime` values in a human-readable form (`1
 | `754000`              | "12 minutes from now" |
 | `-754000`             | "12 minutes ago"      |
 | `DateTime.utc_now() \|> DateTime.add(15s)`   | "15 seconds from now" |
-| `DateTime.utc_now() \|> DateTime.add(90061s, verbose: 2)` | "in 1 day, 1 hour" |
+| `DateTime.utc_now() \|> DateTime.add(90061s)` | "in 1 day" |
 | `DateTime.utc_now() \|> DateTime.add(-15s)`  | "15 seconds ago"      |
 
 ### Localized Outputs:
