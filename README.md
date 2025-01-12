@@ -92,7 +92,7 @@ The following locales are supported:
 - Spanish (`es`)
 - Chinese (`zh`)
 - Russian (`ru`)
-- ...and more (expandable upon request).
+- Portuguese (`pt`)
 
 If the provided locale is not supported, the default (`en`) is used.
 
